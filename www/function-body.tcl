@@ -16,7 +16,7 @@ ad_page_contract {
 set html "[ad_header "[ad_system_name]  One Trigger's Function Body "]
 
 <h2>[ad_system_name] Schema Browser</h2>
-[ad_context_bar_ws [list index.tcl "Schema Browser"] "One Trigger's Function Body"]
+[ad_context_bar_ws [list "./" "Schema Browser"] "One Trigger's Function Body"]
 "
 
 

@@ -15,7 +15,7 @@ ad_page_contract {
 set html "[ad_header "[ad_system_name]  One trigger "]
 
 <h2>[ad_system_name] Schema Browser</h2>
-[ad_context_bar_ws [list index.tcl "Schema Browser"] "One Trigger"]
+[ad_context_bar_ws [list "./" "Schema Browser"] "One Trigger"]
 "
 
 
