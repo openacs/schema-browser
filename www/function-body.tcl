@@ -13,19 +13,8 @@ ad_page_contract {
 }
 
 
-set html "[ad_header "[ad_system_name]  One Trigger's Function Body "]
-
-<h2>[ad_system_name] Schema Browser</h2>
-[ad_context_bar_ws [list "./" "Schema Browser"] "One Trigger's Function Body"]
-"
-
-
 db_1row function_body ""
 
-append html "
-<hr>
-<blockquote><pre>$prosrc</pre></blockquote>
-[ad_footer]
-"
+set context [list "Trigger: $function_name"]
+set page_title "Trigger: $function_name"
 
-doc_return 200 text/html $html

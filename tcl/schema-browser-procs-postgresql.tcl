@@ -302,6 +302,40 @@ g
     return [list [array get references] $complex_foreign_keys]
 }
 
+
+ad_proc -public sb_get_table_size {
+	{-table_name:required}
+	{-namespace {public}}
+	{-block_size {8192}}
+} {
+	Returns the size of the table on disk. This information is only updated
+	by the commands VACUUM, ANALYZE, and CREATE INDEX. Thus, if you have
+	been changing your table, run ANALYZE on the table before running this
+	proc.
+
+	@param table_name The table name
+	@param namespace The database namespace that contains the table
+	@param block_size Size of BLCKSZ (in bytes) used by the database
+
+	@return This procedure returns a list with 2 items:
+		<ol>
+		<li> Size of the table on disk (in bytes)
+		<li> Number of rows in the table
+		</ol>
+
+	@author Gabriel Burca (gburca-openacs@ebixio.com)
+	@creation-date 2004-06-27
+} {
+	db_1row sb_get_table_size "
+		select relpages * :block_size as size_in_bytes, reltuples as table_rows
+		from pg_class
+		where relnamespace = (select oid from pg_namespace where nspname = :namespace)
+		and relname = :table_name
+	"
+	return [list $size_in_bytes $table_rows]
+}
+
+
 ad_proc sb_get_table_description { table_name } {} {
 
     set foreign_keys [sb_get_foreign_keys $table_name]
@@ -505,6 +539,11 @@ ad_proc sb_get_table_description { table_name } {} {
     append html [sb_get_indexes $table_name]
     append html [sb_get_triggers $table_name]
     append html [sb_get_child_tables $table_name "t"]
+
+    set table_size [sb_get_table_size -table_name $table_name]
+    append html "\n\n-- Table size: [util_commify_number [lindex $table_size 0]] bytes\n"
+    append html "-- Table rows: [util_commify_number [lindex $table_size 1]]\n"
+
     append html "</pre>"
     
     return $html

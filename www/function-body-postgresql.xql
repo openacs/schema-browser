@@ -6,7 +6,7 @@
       <querytext>
 
          select
-           prosrc
+           proname as function_name, prosrc as function_src
          from
            pg_proc
          where
