@@ -41,7 +41,7 @@ set page_content "[ad_header "[ad_system_name] Schema Browser"]
 "
 
 if { [exists_and_not_null table_name] } {
-    append page_content [util_memoize "sb_get_table_description $table_name"]
+    append page_content [sb_get_table_description $table_name]
 } else {
     set table_name ""
 }

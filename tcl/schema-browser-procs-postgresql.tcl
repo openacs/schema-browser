@@ -150,18 +150,27 @@ ad_proc sb_get_indexes { table_name { html_anchors_p "f" } } {
         append return_string "\nCREATE$uniqueness INDEX [string tolower $index_name] ON [string tolower $table_name] ("
         set sep ""
 
+        # JCD: need to preserve the order of the index columns 
+        # since it matters a lot.
+
         db_foreach sb_get_indexes_select_2 "
             select
-              a.attname as column_name 
+              a.attname as column_name, a.attnum
             from
               (select oid from pg_class where relname = lower(:table_name)) c
               join pg_attribute a on (c.oid = a.attrelid)
             where a.attnum in $index_clause
         " {
-            append return_string $sep$column_name
+            set cname($attnum) $column_name
+        }
+        
+
+        foreach indid [split $indkey " "] { 
+            append return_string $sep$cname($indid)
             set sep ", "
         }
         append return_string ");"
+        unset cname
     }
 
     return $return_string
