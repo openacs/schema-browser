@@ -7,7 +7,7 @@ ad_page_contract {
 
     @author ?
     @creation-date ?
-    @cvs-id column-comments-2.tcl,v 1.3.6.5 2000/08/08 05:29:09 kevin Exp
+    @cvs-id $Id$
 } {
     table_name:notnull
     column_name:notnull

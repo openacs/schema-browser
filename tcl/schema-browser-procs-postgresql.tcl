@@ -168,20 +168,19 @@ ad_proc sb_get_indexes { table_name { html_anchors_p "f" } } {
 }
 
 ad_proc sb_get_foreign_keys { table_name } {
+    Build a list describing all foreign keys on table_name and their actions.
+    We ignore MATCH conditions because Oracle doesn't support them, therefore
+    OpenACS doesn't use them.  Same is true of SET NULL and SET DEFAULT actions
+    hung on ON DELETE/ON UPDATE subclauses, but since Oracle *does* support 
+    CASCADE as an action I had figure out how to grab this info from the system
+    catalog anyway.
 
-   @author Don Baccus (though he hates to admit to writing such ugly code)
+    This code is *horribly* convoluted, mostly a result of the non-obvious way
+    that the needed information is organized in the PG system catalogs. 
 
-   Build a list describing all foreign keys on table_name and their actions.
-   We ignore MATCH conditions because Oracle doesn't support them, therefore
-   OpenACS doesn't use them.  Same is true of SET NULL and SET DEFAULT actions
-   hung on ON DELETE/ON UPDATE subclauses, but since Oracle *does* support 
-   CASCADE as an action I had figure out how to grab this info from the system
-   catalog anyway.
+    Feel free to clean this up if you want! 
 
-   This code is *horribly* convoluted, mostly a result of the non-obvious way
-   that the needed information is organized in the PG system catalogs. 
-
-   Feel free to clean this up if you want! 
+    @author Don Baccus, though he hates to admit to writing such ugly code (dhogaza@pacifier.com) 
 
 } {
     set complex_foreign_keys [list]

@@ -25,7 +25,7 @@ ad_page_contract {
     
     @author mark@ciccarello.com
     @creation-date ?
-    @cvs-id index.tcl,v 1.8.2.6 2000/08/04 20:16:48 kevin Exp
+    @cvs-id $Id$
 } {
     table_name:optional
 }

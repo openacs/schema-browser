@@ -5,7 +5,7 @@ ad_page_contract {
 
     @author ?
     @creation-date ?
-    @cvs-id trigger.tcl,v 1.4.2.4 2000/08/01 00:00:28 chiao Exp
+    @cvs-id $Id$
 
 } {
     trigger_name:notnull

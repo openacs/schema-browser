@@ -5,7 +5,7 @@ ad_page_contract {
 
     @param oid The oid of the pg_proc entry
 
-    @author Don Baccus
+    @author Don Baccus (dhogaza@pacifier.com)
     @creation-date September, 2001
 
 } {
