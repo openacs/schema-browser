@@ -121,7 +121,7 @@ ad_proc sb_get_child_tables { table_name {html_anchor_p "f"} } {
     return $return_string
 }
 
-ad_proc sb_get_indexes { table_name { html_anchors_p "f" } } {
+ad_proc sb_get_indexes { table_name { html_anchors_p "f" } {pki {}}} {
     Create statements for indexes on table_name.
 } {
 
@@ -141,6 +141,10 @@ ad_proc sb_get_indexes { table_name { html_anchors_p "f" } } {
           join pg_class index_class on (index_class.oid = i.indexrelid and not i.indisprimary)
           join pg_am a on (index_class.relam = a.oid)
         order by index_name"]
+
+    if {![empty_string_p $pki]} { 
+        lappend indexes [list {PRIMARY KEY} { UNIQUE} {} $pki]
+    }
 
     foreach index $indexes {
         foreach {index_name uniqueness index_type indkey} $index {}
@@ -166,8 +170,10 @@ ad_proc sb_get_indexes { table_name { html_anchors_p "f" } } {
         
 
         foreach indid [split $indkey " "] { 
-            append return_string $sep$cname($indid)
-            set sep ", "
+            if {[info exists cname($indid)]} { 
+                append return_string $sep$cname($indid)
+                set sep ", "
+            }
         }
         append return_string ");"
         unset cname
@@ -186,7 +192,7 @@ ad_proc sb_get_foreign_keys { table_name } {
 
     This code is *horribly* convoluted, mostly a result of the non-obvious way
     that the needed information is organized in the PG system catalogs. 
-
+g
     Feel free to clean this up if you want! 
 
     @author Don Baccus, though he hates to admit to writing such ugly code (dhogaza@pacifier.com) 
