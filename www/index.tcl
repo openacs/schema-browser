@@ -33,10 +33,16 @@ ad_page_contract {
 # -----------------------------------------------------------------------------
 
 
+if { [exists_and_not_null table_name] } {
+    set context_bar [ad_context_bar $table_name]
+} else {
+    set context_bar [ad_context_bar]
+}
+
 set page_content "[ad_header "[ad_system_name] Schema Browser"]
 
 <h2>[ad_system_name] Schema Browser</h2>
-[ad_context_bar_ws "Schema Browser"]
+$context_bar
 <hr>
 "
 
