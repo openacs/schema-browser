@@ -121,7 +121,7 @@ ad_proc sb_get_child_tables { table_name {html_anchor_p "f"} } {
     return $return_string
 }
 
-ad_proc sb_get_indexes { table_name { html_anchors_p "f" } } {
+ad_proc sb_get_indexes { table_name { html_anchors_p "f" } {pki {}}} {
     Create statements for indexes on table_name.
 } {
 
@@ -142,6 +142,10 @@ ad_proc sb_get_indexes { table_name { html_anchors_p "f" } } {
           join pg_am a on (index_class.relam = a.oid)
         order by index_name"]
 
+    if {![empty_string_p $pki]} { 
+        lappend indexes [list {PRIMARY KEY} { UNIQUE} {} $pki]
+    }
+
     foreach index $indexes {
         foreach {index_name uniqueness index_type indkey} $index {}
 
@@ -150,18 +154,29 @@ ad_proc sb_get_indexes { table_name { html_anchors_p "f" } } {
         append return_string "\nCREATE$uniqueness INDEX [string tolower $index_name] ON [string tolower $table_name] ("
         set sep ""
 
+        # JCD: need to preserve the order of the index columns 
+        # since it matters a lot.
+
         db_foreach sb_get_indexes_select_2 "
             select
-              a.attname as column_name 
+              a.attname as column_name, a.attnum
             from
               (select oid from pg_class where relname = lower(:table_name)) c
               join pg_attribute a on (c.oid = a.attrelid)
             where a.attnum in $index_clause
         " {
-            append return_string $sep$column_name
-            set sep ", "
+            set cname($attnum) $column_name
+        }
+        
+
+        foreach indid [split $indkey " "] { 
+            if {[info exists cname($indid)]} { 
+                append return_string $sep$cname($indid)
+                set sep ", "
+            }
         }
         append return_string ");"
+        unset cname
     }
 
     return $return_string
@@ -177,7 +192,7 @@ ad_proc sb_get_foreign_keys { table_name } {
 
     This code is *horribly* convoluted, mostly a result of the non-obvious way
     that the needed information is organized in the PG system catalogs. 
-
+g
     Feel free to clean this up if you want! 
 
     @author Don Baccus, though he hates to admit to writing such ugly code (dhogaza@pacifier.com) 
@@ -382,18 +397,29 @@ ad_proc sb_get_table_description { table_name } {} {
 
     # current_contraint_info -- a constraint_info_set for the constraint being processed in the loop below
     set check_constraint_set [ns_set create]
-    db_foreach schema_browser_index_get_subselect "
+    if {[string match {7.[3]*} [db_version]]} {
+	db_foreach schema_browser_index_get_subselect "
+            select
+              conname as constraint_name,
+              consrc as constraint_source
+            from
+              pg_constraint r join (select oid from pg_class where relname = lower(:table_name)) c
+              on (c.oid = r.conrelid)
+            order by constraint_name " {
+		ns_set put $check_constraint_set $constraint_name $constraint_source
+	    }
+    } else {
+	db_foreach schema_browser_index_get_subselect "
         select
           rcname as constraint_name,
           rcsrc as constraint_source
         from
          pg_relcheck r join (select oid from pg_class where relname = lower(:table_name)) c
            on (c.oid = r.rcrelid)
-        order by constraint_name
-    " {
-        ns_set put $check_constraint_set $constraint_name $constraint_source
+        order by constraint_name " {
+	    ns_set put $check_constraint_set $constraint_name $constraint_source
+	}
     }
-
     #
     # write out the columns with associated constraints
     #
