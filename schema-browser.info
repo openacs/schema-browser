@@ -24,7 +24,6 @@
             <file type="package_spec" path="schema-browser.info"/>
             <file type="tcl_procs" db_type="oracle" path="tcl/schema-browser-procs-oracle.tcl"/>
             <file type="tcl_procs" db_type="postgresql" path="tcl/schema-browser-procs-postgresql.tcl"/>
-            <file type="data_model" db_type="oracle" path="tcl/t.sql"/>
             <file type="query_file" db_type="oracle" path="www/column-comments-2-oracle.xql"/>
             <file type="query_file" db_type="postgresql" path="www/column-comments-2-postgresql.xql"/>
             <file type="content_page" path="www/column-comments-2.tcl"/>
