@@ -34,6 +34,11 @@ ad_proc sb_get_tables { selected_table_name } {
     set return_string ""
 
     set tables [sb_get_tables_list]
+    if {[llength $tables] == 0} {
+	return {No tables found. Make sure the owner of the tables in the
+		database matches the user-id used by the web server to connect
+		to the database.}
+    }
 
     set n_rows [expr ([llength $tables] - 1) / $n_columns + 1]
 
@@ -319,20 +324,25 @@ ad_proc -public sb_get_table_size {
 
 	@return This procedure returns a list with 2 items:
 		<ol>
-		<li> Size of the table on disk (in bytes)
-		<li> Number of rows in the table
+		<li> Size of the table on disk (in bytes), or -1 if the table was not found
+		<li> Number of rows in the table, or -1 if the table was not found
 		</ol>
 
 	@author Gabriel Burca (gburca-openacs@ebixio.com)
 	@creation-date 2004-06-27
 } {
-	db_1row sb_get_table_size "
+	set res [db_0or1row sb_get_table_size "
 		select relpages * :block_size as size_in_bytes, reltuples as table_rows
 		from pg_class
 		where relnamespace = (select oid from pg_namespace where nspname = :namespace)
 		and relname = :table_name
-	"
-	return [list $size_in_bytes $table_rows]
+	"]
+	if {$res} {
+		return [list $size_in_bytes $table_rows]
+	} else {
+		# No such table in the namespace?
+		return [list -1 -1]
+	}
 }
 
 
@@ -540,7 +550,11 @@ ad_proc sb_get_table_description { table_name } {} {
     append html [sb_get_triggers $table_name]
     append html [sb_get_child_tables $table_name "t"]
 
-    set table_size [sb_get_table_size -table_name $table_name]
+    if {[string match "pg_*" $table_name]} {
+    	set table_size [sb_get_table_size -table_name $table_name -namespace "pg_catalog"]
+    } else {
+    	set table_size [sb_get_table_size -table_name $table_name]
+    }
     append html "\n\n-- Table size: [util_commify_number [lindex $table_size 0]] bytes\n"
     append html "-- Table rows: [util_commify_number [lindex $table_size 1]]\n"
 
