@@ -269,7 +269,7 @@ ad_proc sb_get_foreign_keys { table_name } {
                  if { $arg_count > 1 } {
                      append foreign_key_sql "FOREIGN KEY ($on_var_part) "
                  }
-                 append foreign_key_sql "REFERENCES $refer_table ($refer_var_part)"
+                 append foreign_key_sql "REFERENCES <a href=\"index?table_name=$refer_table\">$refer_table</a> ($refer_var_part)"
             }
             default {
                 if { ![string equal $action "NOACTION"] } {
@@ -295,6 +295,27 @@ ad_proc sb_get_table_description { table_name } {} {
     set complex_foreign_keys [lindex $foreign_keys 1]
 
     set html "<pre>"
+
+    # get table comments
+    # JCD: pg_description changed from 7.1 to 7.2 so do the correct query... 
+    if { [string match {7.[01]*} [db_version]]} {
+        if { [db_0or1row sb_get_table_comment "
+            select d.description 
+              from pg_class c, pg_description d
+             where c.relname = lower(:table_name) 
+               and d.objoid = c.relfilenode"] } {
+            append html "\n--[join [split $description "\n"] "\n-- "]"
+        }
+    } else { 
+        if { [db_0or1row sb_get_table_comment "
+            select d.description 
+              from pg_class c, pg_description d
+             where c.relname = lower(:table_name) 
+               and d.objoid = c.oid and objsubid = 0"] } {
+                append html "\n--[join [split $description "\n"] "\n-- "]"
+        }
+    }
+                   
     append html "\nCREATE TABLE [string tolower $table_name] ("
 
     if { [db_0or1row sb_get_primary_key "
@@ -315,6 +336,13 @@ ad_proc sb_get_table_description { table_name } {} {
 
     # DRB: This changes some PG internal types into SQL92 standard types for readability's
     # sake.
+
+    # JCD: pg_description changed from 7.1 to 7.2 so do the correct query... 
+    if { [string match {7.[01]*} [db_version]]} {
+        set pg_description_join "left join pg_description d on (a.oid = d.objoid)"
+    } else { 
+        set pg_description_join "left join pg_description d on (c.oid = d.objoid and a.attnum = d.objsubid)"
+    }
 
     db_foreach schema_browser_index_get_user_table_data "
         select
@@ -346,7 +374,7 @@ ad_proc sb_get_table_description { table_name } {} {
              join pg_attribute a on (c.oid = a.attrelid and a.attnum > 0)
              join pg_type t on (a.atttypid = t.oid)
              left join pg_attrdef ad on (a.attrelid = ad.adrelid and a.attnum = ad.adnum)
-             left join pg_description d on (a.oid = d.objoid)
+             $pg_description_join
         order by a.attnum" -column_set column_info_set {
 
         lappend column_list [ns_set copy $column_info_set]
