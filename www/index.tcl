@@ -34,31 +34,15 @@ ad_page_contract {
 
 
 if { [exists_and_not_null table_name] } {
-    set context_bar [ad_context_bar $table_name]
+    set context [list "Table: $table_name"]
+    set page_title "Table: $table_name"
+    set table_description [sb_get_table_description $table_name]
 } else {
-    set context_bar [ad_context_bar]
-}
-
-set page_content "[ad_header "[ad_system_name] Schema Browser"]
-
-<h2>[ad_system_name] Schema Browser</h2>
-$context_bar
-<hr>
-"
-
-if { [exists_and_not_null table_name] } {
-    append page_content [sb_get_table_description $table_name]
-} else {
+    set context ""
+    set page_title "Schema Browser"
     set table_name ""
 }
 
-append page_content "<h3>Tables:</h3>
-[sb_get_tables $table_name]
-[ad_footer]"
 
-doc_return 200 text/html $page_content
-
-
-
-    
+set table_list [sb_get_tables $table_name]
 
