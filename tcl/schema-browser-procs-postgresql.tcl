@@ -81,7 +81,7 @@ ad_proc sb_get_triggers { table_name } {
           pg_trigger t join (select oid from pg_class where relname = lower(:table_name)) c
             on (c.oid = t.tgrelid)
           join pg_proc p on (p.oid = t.tgfoid)
-        where not tgisconstraint
+        where true
     " {
         append return_string "\nCREATE TRIGGER $trigger_name</a> $trigger_type EXECUTE PROCEDURE <a href=\"function-body?oid=$tgfoid\">$proname</a> $status"
     } if_no_rows {
@@ -98,18 +98,19 @@ ad_proc sb_get_child_tables { table_name {html_anchor_p "f"} } {
     set return_string "\n\n-- Tables with foreign keys that refer to $table_name:"
     db_foreach schema_browser_get_referencess "
          select distinct r1.relname as child_table,
-             t.tgconstrname as constraint_name
+             conname as constraint_name
          from
              pg_trigger t,
              pg_class r,
              pg_class r1,
-             pg_proc p
+             pg_proc p,
+             pg_constraint c
          where
              lower(r.relname) = lower(:table_name) and
              r.oid = t.tgconstrrelid and
              r1.oid = t.tgrelid and
-             t.tgisconstraint and
              t.tgfoid = p.oid and
+             c.conrelid  = r.oid and
              p.proname = 'RI_FKey_check_ins'
     " {
         if { $html_anchor_p == "t" } {
@@ -206,7 +207,7 @@ g
     set complex_foreign_keys [list]
     db_foreach schema_browser_get_referencess "
          select t.tgargs as constraint_args,
-             t.tgconstrname as constraint_name,
+             conname as constraint_name,
              'NOACTION' as action,
              'CHECK' as trigger_kind,
              r1.relname as refer_table,
@@ -216,17 +217,18 @@ g
              pg_trigger t,
              pg_class r,
              pg_class r1,
+             pg_constraint c,
              pg_proc p
          where
              lower(r.relname) = lower(:table_name) and
              r.oid = t.tgrelid and
              r1.oid = t.tgconstrrelid and
-             t.tgisconstraint and
              t.tgfoid = p.oid and
+             c.conrelid  = r.oid and
              p.proname = 'RI_FKey_check_ins'
          union all
          select t.tgargs as constraint_args,
-             t.tgconstrname as constraint_name,
+             conname as constraint_name,
              case 
                when p.proname like '%noaction%' then 'NOACTION'
                when p.proname like '%cascade%' then 'CASCADE'
@@ -244,13 +246,14 @@ g
              pg_trigger t,
              pg_class r,
              pg_class r1,
+             pg_constraint c,
              pg_proc p
          where
              lower(r.relname) = lower(:table_name) and
              r.oid = t.tgconstrrelid and
              r1.oid = t.tgrelid and
-             t.tgisconstraint and
              t.tgfoid = p.oid and
+             c.conrelid  = r.oid and
              not p.proname like 'RI%_check_%'
          order by oid, sort_key
        " {             
@@ -264,7 +267,7 @@ g
         switch $trigger_kind {
             CHECK {
                  if { [info exists foreign_key_sql] } {
-                     if { $arg_count == 1 } {
+                     if { [info exists arg_count] && $arg_count == 1 } {
                          set references($on_var) $foreign_key_sql
                      } else {
                          lappend complex_foreign_keys $foreign_key_sql
