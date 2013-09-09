@@ -39,11 +39,11 @@ select comments from user_col_comments where table_name = upper(:table_name) and
 set page_content "
 <h2>ArsDigita Schema Browser</h2>
 <hr>
-<a href=\"index?[export_url_vars table_name]\">Tables</a> : Column Comment
+<a href=\"index?[export_vars -url {table_name}]\">Tables</a> : Column Comment
 <p>
 <b>Enter or revise the comment on $table_name.$column_name:</b>
 <form method=post action=\"column-comments-2\">
-[export_form_vars table_name column_name]
+[export_vars -form {table_name column_name}]
 <textarea name=\"comments\" rows=\"4\" cols=\"40\" wrap=soft>$comments</textarea>
 <p>
 <input type=submit value=\"Save comment\">

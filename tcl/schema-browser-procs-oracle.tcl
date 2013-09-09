@@ -35,7 +35,7 @@ ad_proc sb_get_tables { selected_table_name } {} {
                  if { $table_name == $selected_table_name } {
                      append return_string "<td><b>[string tolower $table_name]</b></td>"
 	         } else {
-                     append return_string "<td><a href=\"index?[export_url_vars table_name]\">[string tolower $table_name]</a></td>"
+                     append return_string "<td><a href=\"index?[export_vars -url {table_name}]\">[string tolower $table_name]</a></td>"
                  }
 	     }
           
@@ -62,7 +62,7 @@ ad_proc sb_get_triggers { table_name } {} {
         where
              table_name = upper(:table_name)
     " {
-        append return_string "\n--\t<a href=\"trigger?[export_url_vars trigger_name]\">$trigger_name</a> $triggering_event $trigger_type $status"
+        append return_string "\n--\t<a href=\"trigger?[export_vars -url {trigger_name}]\">$trigger_name</a> $triggering_event $trigger_type $status"
     } if_no_rows {
         append return_string "\n--\tnone"
     }

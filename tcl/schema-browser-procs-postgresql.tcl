@@ -52,7 +52,7 @@ ad_proc sb_get_tables { selected_table_name } {
                  if { $table_name == $selected_table_name } {
                      append return_string "<td><b>[string tolower $table_name]</b></td>"
 	         } else {
-                     append return_string "<td><a href=\"index?[export_url_vars table_name]\">[string tolower $table_name]</a></td>"
+                     append return_string "<td><a href=\"index?[export_vars -url {table_name}]\">[string tolower $table_name]</a></td>"
                  }
 	     }
           
