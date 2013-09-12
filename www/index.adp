@@ -1,6 +1,6 @@
 <master>
 <property name="context">@context;noquote@</property>
-<property name="title">@page_title@</property>
+<property name="doc(title)">@page_title@</property>
 
 <if @table_description@ not nil>
 @table_description;noquote@
