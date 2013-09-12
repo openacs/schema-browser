@@ -182,7 +182,7 @@ ad_proc sb_get_indexes { table_name { html_anchors_p "f" } {pki {}}} {
             }
         }
         append return_string ");"
-        unset cname
+        unset -nocomplain cname
     }
 
     return $return_string
