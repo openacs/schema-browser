@@ -39,7 +39,7 @@ append html "
 create or replace trigger [string tolower $trigger_name]
 $triggering_event $trigger_type
 <br>
-[util_convert_plaintext_to_html $trigger_body]
+[ad_text_to_html $trigger_body]
 
 [ad_footer]
 "

@@ -494,7 +494,7 @@ ad_proc sb_get_table_description { table_name } {} {
             append html " PRIMARY KEY"
         }
 	if { [ns_set get $column "data_default"] != "" } {
-	    append html " DEFAULT [util_convert_plaintext_to_html [ns_set get $column "data_default"]]"
+	    append html " DEFAULT [ad_text_to_html [ns_set get $column "data_default"]]"
 	}
         if { [ns_set get $column "nullable"] != "" } {
 	    append html " [ns_set get $column "nullable"]"
