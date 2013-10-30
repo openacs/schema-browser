@@ -12,8 +12,10 @@ ad_page_contract {
     oid:notnull,integer
 }
 
+set function_src "cannot obtain function body for oid $oid"
+set function_name "cannot obtain function name for oid $oid"
 
-db_1row function_body ""
+db_0or1row function_body ""
 
 set context [list "Trigger: $function_name"]
 set page_title "Trigger: $function_name"
