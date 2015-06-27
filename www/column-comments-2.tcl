@@ -28,4 +28,4 @@ ad_page_contract {
 
 db_dml comment_add "comment on column ${table_name}.$column_name is :comments"
 
-ad_returnredirect "index?[export_vars -url {table_name}]"
+ad_returnredirect [export_vars -base index {table_name}]
