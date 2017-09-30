@@ -367,10 +367,10 @@ ad_proc sb_get_table_description { table_name } {} {
 	}
 	append html "\t[string tolower [ns_set get $column "column_name"]]\t [ns_set get $column "data_type"]([ns_set get $column "data_length"])"
 	if { [ns_set get $column "data_default"] != "" } {
-	    append html " DEFAULT [ad_text_to_html [ns_set get $column "data_default"]]"
+	    append html " DEFAULT [ad_text_to_html -- [ns_set get $column data_default]]"
 	}
         if { [ns_set get $column "nullable"] != "" } {
-	    append html " [ns_set get $column "nullable"]"
+	    append html " [ns_set get $column nullable]"
 	}
         set constraint_list [ns_set get $column "constraint_list"]
         foreach constraint $constraint_list {
