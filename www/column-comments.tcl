@@ -28,6 +28,7 @@ if { ![info exists column_name] || $column_name == "" } {
 
 if { $error_count > 0 } {
     ad_return_complaint $error_count $error_message
+    ad_script_abort
 }
 
 
