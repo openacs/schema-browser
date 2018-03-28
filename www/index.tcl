@@ -1,7 +1,7 @@
 ad_page_contract {    
     data structures used
 
-    column_info: a type of ns_set expected to containt the following values
+    column_info: a type of ns_set expected to contain the following values
     column_name
     data_type
     data_length
@@ -11,7 +11,7 @@ ad_page_contract {
     nullable
     
 
-    constraint_info: a type of ns_set expected to containt the following values:
+    constraint_info: a type of ns_set expected to contain the following values:
     constraint_name 
     constraint_type 
     constraint_columns -- list of column names
