@@ -444,7 +444,7 @@ ad_proc sb_get_table_description { table_name } {} {
     }
     ns_set free $column_info_set
 
-    # current_contraint_info -- a constraint_info_set for the constraint being processed in the loop below
+    # current_constraint_info -- a constraint_info_set for the constraint being processed in the loop below
     set check_constraint_set [ns_set create]
     if {![string match {7.[12]*} [db_version]]} {
 	db_foreach schema_browser_index_get_subselect "

@@ -260,8 +260,8 @@ ad_proc sb_get_table_description { table_name } {} {
     set table_constraint_list [list]     
     
 
-    # current_contraint_info -- a constraint_info_set for the constraint being processed in the loop below
-    set constraint_info [ns_set new]        
+    # current_constraint_info -- a constraint_info_set for the constraint being processed in the loop below
+    set constraint_info [ns_set new]
 
     db_foreach schema_browser_index_get_subselect "
     select  columns.constraint_name,
