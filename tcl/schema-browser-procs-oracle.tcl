@@ -118,7 +118,7 @@ ad_proc sb_get_child_tables { table_name {html_anchor_p "f"} } {} {
              parentcol.table_name = upper(:table_name)
          order by child_table
        " {             
-        if { [expr (($child_count % 3) == 0)] } {
+        if { (($child_count % 3) == 0) } {
             append return_string "\n--"
 	}
         if { $html_anchor_p == "t" } {
