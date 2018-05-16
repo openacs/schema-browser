@@ -6,7 +6,7 @@ ad_proc sb_get_tables_list {} {} {
 
     set tables ""
 
-    db_foreach schema_browser_index_get_tables "select table_name 
+    db_foreach schema_browser_index_get_tables "select table_name
     from user_tables order by table_name" {
         lappend tables $table_name
     }
@@ -23,31 +23,29 @@ ad_proc sb_get_tables { selected_table_name } {} {
 
     set tables [util_memoize "sb_get_tables_list"]
 
-    set n_rows [expr ([llength $tables] - 1) / $n_columns + 1]
+    set n_rows [expr {([llength $tables] - 1) / $n_columns + 1}]
 
     append return_string "<table>"
     for { set row 0 } { $row < $n_rows } { incr row } {
-         append return_string "<tr>"
-         for {set column 0} {$column < $n_columns} {incr column} {
-             set i_element [expr $n_rows * $column + $row]
-             if { $i_element < [llength $tables] } {
-                 set table_name [lindex $tables $i_element]
-                 if { $table_name == $selected_table_name } {
-                     append return_string "<td><b>[string tolower $table_name]</b></td>"
-	         } else {
-		     set href [export_vars -base index {table_name}]
-		     append return_string [subst {<td><a href="[ns_quotehtml $href]">[string tolower $table_name]</a></td>}]
-                 }
-	     }
-          
-         }   
-     append return_string "</tr>"
+        append return_string "<tr>"
+        for {set column 0} {$column < $n_columns} {incr column} {
+            set i_element [expr {$n_rows * $column + $row}]
+            if { $i_element < [llength $tables] } {
+                set table_name [lindex $tables $i_element]
+                if { $table_name == $selected_table_name } {
+                    append return_string "<td><b>[string tolower $table_name]</b></td>"
+                } else {
+                    set href [export_vars -base index {table_name}]
+                    append return_string [subst {<td><a href="[ns_quotehtml $href]">[string tolower $table_name]</a></td>}]
+                }
+            }
+        }
+        append return_string "</tr>"
     }
 
     append return_string "</table>"
 
     return $return_string
-
 }
 
 ad_proc sb_get_triggers { table_name } {} {
@@ -70,7 +68,7 @@ ad_proc sb_get_triggers { table_name } {} {
         append return_string "\n--\tnone"
     }
 
-    return $return_string        
+    return $return_string
 }
 
 ad_proc sb_get_child_tables { table_name {html_anchor_p "f"} } {} {
@@ -80,7 +78,7 @@ ad_proc sb_get_child_tables { table_name {html_anchor_p "f"} } {} {
   #
 
   set return_string ""
-  
+
   # this takes about 8 minutes to run -- for one table!
   #   set selection [ns_db select $db "
   #        select
@@ -117,7 +115,7 @@ ad_proc sb_get_child_tables { table_name {html_anchor_p "f"} } {} {
              childcon.constraint_type = 'R' and
              parentcol.table_name = upper(:table_name)
          order by child_table
-       " {             
+       " {
         if { (($child_count % 3) == 0) } {
             append return_string "\n--"
 	}
@@ -125,15 +123,15 @@ ad_proc sb_get_child_tables { table_name {html_anchor_p "f"} } {} {
             append return_string " <a href=\"index?table_name=$child_table\">[string tolower $child_table]</a>"
         } else {
             append return_string " [string tolower $child_table]"
-	} 
+	}
         append return_string "($r_constraint_name)"
         incr child_count
     } if_no_rows {
-        append return_string "\n--\t none"   
+        append return_string "\n--\t none"
     }
-    
+
     return $return_string
-    
+
 }
 
 ad_proc add_column_constraint { column_list column_constraint } {} {
@@ -143,7 +141,7 @@ ad_proc add_column_constraint { column_list column_constraint } {} {
 #
 # column_list := list of column_info
 # column_constraint := constraint_info ns_set
-# 
+#
 #
 
     set i 0
@@ -164,28 +162,28 @@ ad_proc add_column_constraint { column_list column_constraint } {} {
 	}
         incr i
     }
-    
+
     return $column_list
 
 }
 
 ad_proc sb_get_indexes { table_name { html_anchors_p "f" } } {} {
 
-    
+
     set return_string ""
-    
+
     #
     # create statements for non-unique indices
-    # 
-    
+    #
+
     set prev_index ""
 
     db_foreach sb_get_indexes_select_1 "
     select
-    i.index_name, 
-    i.index_type, 
+    i.index_name,
+    i.index_type,
     i.uniqueness,
-    c.column_name      
+    c.column_name
     from
     user_indexes i, user_ind_columns c
     where
@@ -194,7 +192,7 @@ ad_proc sb_get_indexes { table_name { html_anchors_p "f" } } {} {
     order by
     i.index_name,
     c.column_position" {
-        
+
         if { $uniqueness == "NONUNIQUE" } {
             # unique indices are written out as constraints
             if { $index_name != $prev_index } {
@@ -205,17 +203,17 @@ ad_proc sb_get_indexes { table_name { html_anchors_p "f" } } {} {
             } else {
                 append return_string ","
             }
-            append return_string "[string tolower $column_name]" 
+            append return_string "[string tolower $column_name]"
             set prev_index $index_name
         }
     }
-    
+
     if { $prev_index != "" } {
         append return_string ");"
     }
-    
+
     return $return_string
-    
+
 }
 
 ad_proc sb_get_table_description { table_name } {} {
@@ -223,7 +221,7 @@ ad_proc sb_get_table_description { table_name } {} {
     set html ""
     append html "<pre>"
     append html "\nCREATE TABLE [string tolower $table_name] ("
- 
+
     set column_list [list]
     set column_info_set [ns_set create]
     db_foreach schema_browser_index_get_user_table_data "
@@ -257,8 +255,8 @@ ad_proc sb_get_table_description { table_name } {} {
     # find the column and table constraints
     #
     # table_constraint_list -- a list of constraint_info_sets for all constraints involving more than one column
-    set table_constraint_list [list]     
-    
+    set table_constraint_list [list]
+
 
     # current_constraint_info -- a constraint_info_set for the constraint being processed in the loop below
     set constraint_info [ns_set new]
@@ -272,21 +270,21 @@ ad_proc sb_get_table_description { table_name } {} {
             decode(columns.constraint_type,'P',0,'U',1,'R',2,'C',3,4) as constraint_type_ordering,
             parent_columns.table_name as foreign_table_name,
             parent_columns.column_name as foreign_column_name
-    from    (   
-               select 
+    from    (
+               select
                    col.table_name,
-                   con.constraint_name, 
-                   column_name, 
-                   constraint_type, 
-                   search_condition, 
+                   con.constraint_name,
+                   column_name,
+                   constraint_type,
+                   search_condition,
                    r_constraint_name,
-                   position 
+                   position
                from
                    user_constraints con,
                    user_cons_columns col
                where
                    con.constraint_name = col.constraint_name
-            ) columns, 
+            ) columns,
             user_cons_columns parent_columns
     where   columns.table_name = upper(:table_name) and
             constraint_type in ('P','U','C','R') and
@@ -297,7 +295,7 @@ ad_proc sb_get_table_description { table_name } {} {
             constraint_name,
             columns.position
     " {
-	
+
 	if { $constraint_name != [ns_set get $constraint_info  "constraint_name"] } {
 	    if { [ns_set get $constraint_info "constraint_name"] != "" } {
 		# we've reached a new constraint, so finish processing the old one
@@ -323,13 +321,13 @@ ad_proc sb_get_table_description { table_name } {} {
 	    lappend constraint_columns $column_name
 	    ns_set update $constraint_info "constraint_columns" $constraint_columns
 	    if { $foreign_column_name != "" } {
-		set foreign_columns [ns_set get $constraint_info "foreign_columns"] 
+		set foreign_columns [ns_set get $constraint_info "foreign_columns"]
 		lappend foreign_columns $foreign_column_name
 		ns_set put $constraint_info "constraint_columns" $foreign_columns
 	    }
 	}
     }
-    
+
     # we've run out of rows, but need to flush out the open current_constraint
     if { [ns_set get $constraint_info "constraint_name"] != "" } {
 	if { [llength [ns_set get $constraint_info "constraint_columns"]] > 1 } {
@@ -342,7 +340,7 @@ ad_proc sb_get_table_description { table_name } {} {
     #
     # write out the columns with associated constraints
     #
-    
+
     set n_column 0
     set hanging_comment ""
 
@@ -386,10 +384,10 @@ ad_proc sb_get_table_description { table_name } {} {
 	    } elseif { $constraint_type == "C" } {
                 # check constraint  ignore not-null checks
                 # because we already handled them
-                if { [string first "NOT NULL" [ns_set get $constraint "search_condition"]] == -1 } { 
+                if { [string first "NOT NULL" [ns_set get $constraint "search_condition"]] == -1 } {
                     append html "\n\t\tCHECK [ns_set get $constraint "constraint_name"]([ns_set get $constraint "search_condition"])"
                 }
-            } 
+            }
 	}
         incr n_column
     }
@@ -401,7 +399,7 @@ ad_proc sb_get_table_description { table_name } {} {
     #
     # write out the table-level constraints in the table_constraint_list
     #
-    
+
     foreach constraint $table_constraint_list {
         set constraint_type [ns_set get $constraint "constraint_type"]
         set constraint_name [ns_set get $constraint "constraint_name"]
@@ -421,14 +419,14 @@ ad_proc sb_get_table_description { table_name } {} {
             append html "[string tolower [join $foreign_columns ","]])"
 	}
     }
-    
+
     append html "\n);"
     append html [sb_get_indexes $table_name]
     append html [sb_get_triggers $table_name]
     append html [sb_get_child_tables $table_name "t"]
     append html "</pre>"
-    
+
     return $html
-    
+
 }
 
