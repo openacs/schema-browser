@@ -1,4 +1,4 @@
-ad_page_contract {    
+ad_page_contract {
     data structures used
 
     column_info: a type of ns_set expected to contain the following values
@@ -9,11 +9,11 @@ ad_page_contract {
     constraint_list -- list of ids of constraint_info ns_sets
     data_default
     nullable
-    
+
 
     constraint_info: a type of ns_set expected to contain the following values:
-    constraint_name 
-    constraint_type 
+    constraint_name
+    constraint_type
     constraint_columns -- list of column names
     search_condition -- optional -- not null and check constraint types only
     foreign_columns -- list of foreign column names -- optional -- foreign constraints only
@@ -22,7 +22,7 @@ ad_page_contract {
     r_constraint_name -- optional -- foreign constraints only
 
     @param table_name
-    
+
     @author mark@ciccarello.com
     @creation-date ?
     @cvs-id $Id$
@@ -33,7 +33,7 @@ ad_page_contract {
 # -----------------------------------------------------------------------------
 
 
-if { [exists_and_not_null table_name] } {
+if { [info exists table_name] && $table_name ne "" } {
     set context [list "Table: $table_name"]
     set page_title "Table: $table_name"
     set table_description [sb_get_table_description $table_name]
