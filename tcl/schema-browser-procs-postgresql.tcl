@@ -5,10 +5,7 @@ ad_library {
 ad_proc sb_get_tables_list {} {
    Get all tables that belong to the current user.
 } {
-
-    set tables ""
-
-    db_foreach schema_browser_index_get_tables "
+    return [db_list schema_browser_index_get_tables {
         select
           pg_class.relname as table_name
         from pg_class, pg_user
@@ -16,13 +13,7 @@ ad_proc sb_get_tables_list {} {
           pg_user.usesysid = pg_class.relowner and
           pg_class.relkind = 'r'
         order by relname
-    " {
-        lappend tables $table_name
-    }
-
-    db_release_unused_handles
-    return $tables
-
+    }]
 }
 
 ad_proc sb_get_tables { selected_table_name } {
@@ -40,13 +31,13 @@ ad_proc sb_get_tables { selected_table_name } {
 		to the database.}
     }
 
-    set n_rows [expr ([llength $tables] - 1) / $n_columns + 1]
+    set n_rows [expr {([llength $tables] - 1) / $n_columns + 1}]
 
     append return_string "<table>"
     for { set row 0 } { $row < $n_rows } { incr row } {
          append return_string "<tr>"
          for {set column 0} {$column < $n_columns} {incr column} {
-             set i_element [expr $n_rows * $column + $row]
+             set i_element [expr {$n_rows * $column + $row}]
              if { $i_element < [llength $tables] } {
                  set table_name [lindex $tables $i_element]
                  if { $table_name == $selected_table_name } {
@@ -72,7 +63,7 @@ ad_proc sb_get_triggers { table_name } {
    Get all non-RI triggers on the table.
 } {
     set return_string "\n"
-    db_foreach sb_get_triggers_select_1 "
+    db_foreach sb_get_triggers_select_1 {
         select
           tgname as trigger_name,
           trigger_type(tgtype) as trigger_type,
@@ -84,7 +75,7 @@ ad_proc sb_get_triggers { table_name } {
             on (c.oid = t.tgrelid)
           join pg_proc p on (p.oid = t.tgfoid)
         where true
-    " {
+    } {
         append return_string "\nCREATE TRIGGER $trigger_name</a> $trigger_type EXECUTE PROCEDURE <a href=\"function-body?oid=$tgfoid\">$proname</a> $status"
     } if_no_rows {
         set return_string ""
@@ -98,7 +89,7 @@ ad_proc sb_get_child_tables { table_name {html_anchor_p "f"} } {
 } {
     
     set return_string "\n\n-- Tables with foreign keys that refer to $table_name:"
-    db_foreach schema_browser_get_referencess "
+    db_foreach schema_browser_get_referencess {
          select distinct r1.relname as child_table,
              conname as constraint_name
          from
@@ -114,13 +105,13 @@ ad_proc sb_get_child_tables { table_name {html_anchor_p "f"} } {
              t.tgfoid = p.oid and
              c.conrelid  = r.oid and
              p.proname = 'RI_FKey_check_ins'
-    " {
+    } {
         if { $html_anchor_p == "t" } {
             append return_string "\n--<a href=\"index?table_name=$child_table\">[string tolower $child_table]</a>"
         } else {
             append return_string "\n--[string tolower $child_table]"
 	} 
-        if { ![string equal $constraint_name "<unnamed>"] } {
+        if { $constraint_name ne "<unnamed>" } {
             append return_string "($constraint_name)"
         }
     } if_no_rows {
@@ -137,7 +128,7 @@ ad_proc sb_get_indexes { table_name { html_anchors_p "f" } {pki {}}} {
     set return_string "\n"
     set prev_index ""
 
-    set indexes [db_list_of_lists sb_get_indexes_select_1 "
+    set indexes [db_list_of_lists sb_get_indexes_select_1 {
         select
           relname as index_name, 
           case when indisunique then ' UNIQUE' else NULL end as uniqueness,
@@ -148,14 +139,14 @@ ad_proc sb_get_indexes { table_name { html_anchors_p "f" } {pki {}}} {
             on (i.indrelid = c.oid)
           join pg_class index_class on (index_class.oid = i.indexrelid and not i.indisprimary)
           join pg_am a on (index_class.relam = a.oid)
-        order by index_name"]
+        order by index_name}]
 
-    if {![empty_string_p $pki]} { 
+    if {$pki ne ""} { 
         lappend indexes [list {PRIMARY KEY} { UNIQUE} {} $pki]
     }
 
     foreach index $indexes {
-        foreach {index_name uniqueness index_type indkey} $index {}
+        lassign $index index_name uniqueness index_type indkey
 
         set index_clause "([join [split $indkey " "] ","])"
 
@@ -207,7 +198,7 @@ g
 
 } {
     set complex_foreign_keys [list]
-    db_foreach schema_browser_get_referencess "
+    db_foreach schema_browser_get_referencess {
          select t.tgargs as constraint_args,
              conname as constraint_name,
              'NOACTION' as action,
@@ -258,13 +249,13 @@ g
              c.conrelid  = r.oid and
              not p.proname like 'RI%_check_%'
          order by oid, sort_key
-       " {             
+    } {             
         set one_ri_datum [list]
         set arg_start 0
-        while { ![empty_string_p $constraint_args] } {
-            set arg_end [expr [string first "\\000" $constraint_args] - 1]
+        while { $constraint_args ne "" } {
+            set arg_end [expr {[string first "\\000" $constraint_args] - 1}]
             lappend one_ri_datum [string range $constraint_args $arg_start $arg_end]
-            set constraint_args [string range $constraint_args [expr $arg_end+5] end]
+            set constraint_args [string range $constraint_args [expr {$arg_end+5}] end]
         }
         switch $trigger_kind {
             CHECK {
@@ -275,7 +266,7 @@ g
                          lappend complex_foreign_keys $foreign_key_sql
                      }
                  }
-                 if { [string equal $constraint_name "<unnamed>"] } {
+                 if { $constraint_name eq "<unnamed>" } {
                      set foreign_key_sql ""
                  } else {
                      set foreign_key_sql "CONSTRAINT $constraint_name "
@@ -296,7 +287,7 @@ g
                  append foreign_key_sql "REFERENCES <a href=\"index?table_name=$refer_table\">$refer_table</a> ($refer_var_part)"
             }
             default {
-                if { ![string equal $action "NOACTION"] } {
+                if { $action ne "NOACTION" } {
                     append foreign_key_sql " $trigger_kind $action"
                 }
             }
@@ -336,18 +327,18 @@ ad_proc -public sb_get_table_size {
 	@author Gabriel Burca (gburca-openacs@ebixio.com)
 	@creation-date 2004-06-27
 } {
-	set res [db_0or1row sb_get_table_size "
-		select relpages * :block_size as size_in_bytes, reltuples as table_rows
-		from pg_class
-		where relnamespace = (select oid from pg_namespace where nspname = :namespace)
-		and relname = :table_name
-	"]
-	if {$res} {
-		return [list $size_in_bytes $table_rows]
-	} else {
-		# No such table in the namespace?
-		return [list -1 -1]
-	}
+    set res [db_0or1row sb_get_table_size {
+        select relpages * :block_size as size_in_bytes, reltuples as table_rows
+        from pg_class
+        where relnamespace = (select oid from pg_namespace where nspname = :namespace)
+        and relname = :table_name
+    }]
+    if {$res} {
+        return [list $size_in_bytes $table_rows]
+    } else {
+        # No such table in the namespace?
+        return [list -1 -1]
+    }
 }
 
 
@@ -362,33 +353,33 @@ ad_proc sb_get_table_description { table_name } {} {
     # get table comments
     # JCD: pg_description changed from 7.1 to 7.2 so do the correct query... 
     if { [string match {7.[01]*} [db_version]]} {
-        if { [db_0or1row sb_get_table_comment "
+        if { [db_0or1row sb_get_table_comment {
             select d.description 
               from pg_class c, pg_description d
              where c.relname = lower(:table_name) 
-               and d.objoid = c.relfilenode"] } {
+               and d.objoid = c.relfilenode}] } {
             append html "\n--[join [split $description "\n"] "\n-- "]"
         }
     } else { 
-        if { [db_0or1row sb_get_table_comment "
+        if { [db_0or1row sb_get_table_comment {
             select d.description 
               from pg_class c, pg_description d
              where c.relname = lower(:table_name) 
-               and d.objoid = c.oid and objsubid = 0"] } {
-                append html "\n--[join [split $description "\n"] "\n-- "]"
+               and d.objoid = c.oid and objsubid = 0}] } {
+            append html "\n--[join [split $description "\n"] "\n-- "]"
         }
     }
                    
     append html "\nCREATE TABLE [string tolower $table_name] ("
 
-    if { [db_0or1row sb_get_primary_key "
+    if { [db_0or1row sb_get_primary_key {
             select
               indkey as primary_key_array
             from
               pg_index i join (select oid from pg_class where relname = lower(:table_name)) c
                 on (i.indrelid = c.oid)
               join pg_class index_class on (index_class.oid = i.indexrelid and i.indisprimary)
-              join pg_am a on (index_class.relam = a.oid)"] } {
+              join pg_am a on (index_class.relam = a.oid)}] } {
         set primary_key_columns [split $primary_key_array " "]
     } else {
         set primary_key_columns [list]
@@ -447,16 +438,17 @@ ad_proc sb_get_table_description { table_name } {} {
     # current_constraint_info -- a constraint_info_set for the constraint being processed in the loop below
     set check_constraint_set [ns_set create]
     if {![string match {7.[12]*} [db_version]]} {
-	db_foreach schema_browser_index_get_subselect "
+	db_foreach schema_browser_index_get_subselect {
             select
               conname as constraint_name,
               consrc as constraint_source
             from
               pg_constraint r join (select oid from pg_class where relname = lower(:table_name)) c
               on (c.oid = r.conrelid)
-            order by constraint_name " {
-		ns_set put $check_constraint_set $constraint_name $constraint_source
-	    }
+            order by constraint_name
+        } {
+            ns_set put $check_constraint_set $constraint_name $constraint_source
+        }
     } else {
 	db_foreach schema_browser_index_get_subselect "
         select
@@ -486,10 +478,10 @@ ad_proc sb_get_table_description { table_name } {} {
 	}
 	append html "\n"
 	append html "\t[string tolower [ns_set get $column column_name]]\t [ns_set get $column data_type]"
-        if { ![empty_string_p [ns_set get $column data_length]] } {
+        if { [ns_set get $column data_length] ne "" } {
             append html "([ns_set get $column data_length])"
         }
-        if { ![empty_string_p [ns_set get $column precision]] } {
+        if { [ns_set get $column precision] ne "" } {
             append html "([ns_set get $column precision], [ns_set get $column scale])"
         }
         if { [llength $primary_key_columns] == 1 && [lindex $primary_key_columns 0] == [ns_set get $column column_number] } {
@@ -506,7 +498,7 @@ ad_proc sb_get_table_description { table_name } {} {
             append html " $references([ns_set get $column column_name])"
         }
 
-        if { ![empty_string_p [ns_set get $check_constraint_set [ns_set get $column column_constraint_key]]] } {
+        if { [ns_set get $check_constraint_set [ns_set get $column column_constraint_key]] ne "" } {
             append html "\n\t\t\tCHECK [ns_set get $check_constraint_set [ns_set get $column column_constraint_key]]"
             ns_set delkey $check_constraint_set [ns_set get $column column_constraint_key]
         }
@@ -519,7 +511,7 @@ ad_proc sb_get_table_description { table_name } {} {
     #
     
     for { set i 0 } { $i < [ns_set size $check_constraint_set] } { incr i } {
-        if { ![empty_string_p [ns_set value $check_constraint_set $i]] } {
+        if { [ns_set value $check_constraint_set $i] ne "" } {
             append html ",\n	"
             if { [string first "\$" [ns_set key $check_constraint_set $i]] == -1 } {
                 append html "CONSTRAINT [ns_set key $check_constraint_set $i]\n	"
@@ -530,19 +522,14 @@ ad_proc sb_get_table_description { table_name } {} {
     
     if { [llength $primary_key_columns] > 1 } {
         append html ",\n\tPRIMARY KEY ("
-        set sep ""
-    
-        db_foreach sb_get_primary_key_select_2 "
+        append html [join [db_list sb_get_primary_key_select_2 [subst {
             select
               a.attname as column_name 
             from
               (select oid from pg_class where relname = lower(:table_name)) c
               join pg_attribute a on (c.oid = a.attrelid)
-              where a.attnum in ([join $primary_key_columns ","])
-        " {
-            append html $sep$column_name
-            set sep ", "
-        }
+            where a.attnum in ([join $primary_key_columns ","])
+        }]] ","]
         append html ")"
     }
 
