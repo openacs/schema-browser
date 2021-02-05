@@ -16,12 +16,12 @@ ad_page_contract {
 set error_count 0
 set error_message ""
 
-if { ![info exists table_name] || $table_name == "" } {
+if { ![info exists table_name] || $table_name eq "" } {
     incr error_count
     append error_message "<li>variable table_name not found"
 }
 
-if { ![info exists column_name] || $column_name == "" } {
+if { ![info exists column_name] || $column_name eq "" } {
     incr error_count
     append error_message "<li>variable column_name not found"
 }

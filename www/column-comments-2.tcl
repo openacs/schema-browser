@@ -14,13 +14,13 @@ ad_page_contract {
     comments:notnull
 } -validate {
     valid_table_name -requires {table_name} {
-	if ![db_table_exists $table_name] {
+	if {![db_table_exists $table_name]} {
 	    ad_complain "Called with an invalid table name"
 	}
     }
 
     valid_column_name -requires {column_name valid_table_name} {
-	if ![db_column_exists $table_name $column_name] {
+	if {![db_column_exists $table_name $column_name]} {
 	    ad_complain "Called with an invalid column name"
 	}
     }

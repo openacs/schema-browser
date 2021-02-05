@@ -183,7 +183,7 @@ ad_proc sb_get_indexes { table_name { html_anchors_p "f" } {pki {}}} {
 
 ad_proc sb_get_foreign_keys { table_name } {
     Build a list describing all foreign keys on table_name and their actions.
-    We ignore MATCH conditions because Oracle doesn't support them, therefore
+    We ignore MATCH conditions because Oracle doesn't support them, therefore,
     OpenACS doesn't use them.  Same is true of SET NULL and SET DEFAULT actions
     hung on ON DELETE/ON UPDATE subclauses, but since Oracle *does* support
     CASCADE as an action I had figure out how to grab this info from the system
@@ -255,7 +255,7 @@ g
         while { $constraint_args ne "" } {
             set arg_end [expr {[string first "\\000" $constraint_args] - 1}]
             lappend one_ri_datum [string range $constraint_args $arg_start $arg_end]
-            set constraint_args [string range $constraint_args [expr {$arg_end+5}] end]
+            set constraint_args [string range $constraint_args $arg_end+5 end]
         }
         switch $trigger_kind {
             CHECK {
@@ -441,7 +441,7 @@ ad_proc sb_get_table_description { table_name } {} {
             append html ","
         }
         set column_comments [ns_set get $column "column_comments"]
-        if {$column_comments != ""} {
+        if {$column_comments ne ""} {
             set comment_list [split $column_comments "\n"]
             append html "\n\t--[join $comment_list "\n\t-- "]"
         }
@@ -456,10 +456,10 @@ ad_proc sb_get_table_description { table_name } {} {
         if { [llength $primary_key_columns] == 1 && [lindex $primary_key_columns 0] == [ns_set get $column column_number] } {
             append html " PRIMARY KEY"
         }
-        if { [ns_set get $column "data_default"] != "" } {
+        if { [ns_set get $column "data_default"] ne "" } {
             append html " DEFAULT [ad_text_to_html -- [ns_set get $column data_default]]"
         }
-        if { [ns_set get $column "nullable"] != "" } {
+        if { [ns_set get $column "nullable"] ne "" } {
             append html " [ns_set get $column nullable]"
         }
 

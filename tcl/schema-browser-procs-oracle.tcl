@@ -193,10 +193,10 @@ ad_proc sb_get_indexes { table_name { html_anchors_p "f" } } {} {
     i.index_name,
     c.column_position" {
 
-        if { $uniqueness == "NONUNIQUE" } {
+        if { $uniqueness eq "NONUNIQUE" } {
             # unique indices are written out as constraints
             if { $index_name != $prev_index } {
-                if { $prev_index != "" } {
+                if { $prev_index ne "" } {
                     append return_string ");"
                 }
                 append return_string "\nCREATE INDEX [string tolower $index_name] ON [string tolower $table_name]\("
@@ -208,7 +208,7 @@ ad_proc sb_get_indexes { table_name { html_anchors_p "f" } } {} {
         }
     }
 
-    if { $prev_index != "" } {
+    if { $prev_index ne "" } {
         append return_string ");"
     }
 
@@ -297,7 +297,7 @@ ad_proc sb_get_table_description { table_name } {} {
     " {
 
 	if { $constraint_name != [ns_set get $constraint_info  "constraint_name"] } {
-	    if { [ns_set get $constraint_info "constraint_name"] != "" } {
+	    if { [ns_set get $constraint_info "constraint_name"] ne "" } {
 		# we've reached a new constraint, so finish processing the old one
 		if { [llength [ns_set get $constraint_info "constraint_columns"]] > 1 } {
 		    # this is a table constraint -- involves more than one column, so add it to the table constraint list
@@ -320,7 +320,7 @@ ad_proc sb_get_table_description { table_name } {} {
 	    set constraint_columns [ns_set get $constraint_info "constraint_columns"]
 	    lappend constraint_columns $column_name
 	    ns_set update $constraint_info "constraint_columns" $constraint_columns
-	    if { $foreign_column_name != "" } {
+	    if { $foreign_column_name ne "" } {
 		set foreign_columns [ns_set get $constraint_info "foreign_columns"]
 		lappend foreign_columns $foreign_column_name
 		ns_set put $constraint_info "constraint_columns" $foreign_columns
@@ -329,7 +329,7 @@ ad_proc sb_get_table_description { table_name } {} {
     }
 
     # we've run out of rows, but need to flush out the open current_constraint
-    if { [ns_set get $constraint_info "constraint_name"] != "" } {
+    if { [ns_set get $constraint_info "constraint_name"] ne "" } {
 	if { [llength [ns_set get $constraint_info "constraint_columns"]] > 1 } {
 	    lappend table_constraint_list $constraint_info
 	} else {
@@ -349,14 +349,14 @@ ad_proc sb_get_table_description { table_name } {} {
 	    append html ","
 	    # flush out a comment on the previous column, if needed
 	    # delayed until after the comma
-	    if { $hanging_comment != "" } {
+	    if { $hanging_comment ne "" } {
 		append html " -- $hanging_comment"
 		set hanging_comment ""
 	    }
 	}
 	append html "\n"
 	set column_comments [ns_set get $column "column_comments"]
-	if {$column_comments != ""} {
+	if {$column_comments ne ""} {
 	    if { [string length $column_comments] > 40 } {
 		append html "\t-- [string range $column_comments 0 36]..."
 	    } else {
@@ -364,24 +364,24 @@ ad_proc sb_get_table_description { table_name } {} {
 	    }
 	}
 	append html "\t[string tolower [ns_set get $column "column_name"]]\t [ns_set get $column "data_type"]([ns_set get $column "data_length"])"
-	if { [ns_set get $column "data_default"] != "" } {
+	if { [ns_set get $column "data_default"] ne "" } {
 	    append html " DEFAULT [ad_text_to_html -- [ns_set get $column data_default]]"
 	}
-        if { [ns_set get $column "nullable"] != "" } {
+        if { [ns_set get $column "nullable"] ne "" } {
 	    append html " [ns_set get $column nullable]"
 	}
         set constraint_list [ns_set get $column "constraint_list"]
         foreach constraint $constraint_list {
             set constraint_type [ns_set get $constraint "constraint_type"]
-            if { $constraint_type == "P" } {
+            if { $constraint_type eq "P" } {
                 append html " PRIMARY KEY"
-	    } elseif { $constraint_type == "U" } {
+	    } elseif { $constraint_type eq "U" } {
                 append html " UNIQUE"
-	    } elseif { $constraint_type == "R" } {
+	    } elseif { $constraint_type eq "R" } {
                 set foreign_table [string tolower [ns_set get $constraint "foreign_table"]]
                 append html " REFERENCES <a href=\"index?table_name=$foreign_table\">$foreign_table</a>([string tolower [ns_set get $constraint "foreign_columns"]])"
                 set hanging_comment [ns_set get $constraint "constraint_name"]
-	    } elseif { $constraint_type == "C" } {
+	    } elseif { $constraint_type eq "C" } {
                 # check constraint  ignore not-null checks
                 # because we already handled them
                 if { [string first "NOT NULL" [ns_set get $constraint "search_condition"]] == -1 } {
@@ -391,7 +391,7 @@ ad_proc sb_get_table_description { table_name } {} {
 	}
         incr n_column
     }
-    if { $hanging_comment != "" } {
+    if { $hanging_comment ne "" } {
         append html " -- $hanging_comment"
         set hanging_comment ""
     }
@@ -406,13 +406,13 @@ ad_proc sb_get_table_description { table_name } {} {
         set constraint_columns [ns_set get $constraint "constraint_columns"]
         set foreign_table [string tolower [ns_set get $constraint "foreign_table"]]
         set foreign_columns [ns_set get $constraint "foreign_columns"]
-        if { $constraint_type == "P" } {
+        if { $constraint_type eq "P" } {
             append html ",\n\tPRIMARY KEY [ns_set get $constraint "constraint_name"]("
             append html "[string tolower [join [ns_set get $constraint "constraint_columns"] ","]])"
-	} elseif { $constraint_type == "U"} {
+	} elseif { $constraint_type eq "U"} {
             append html ",\n\tUNIQUE [ns_set get $constraint "constraint_name"]("
             append html "[string tolower [join [ns_set get $constraint "constraint_columns"] ","]])"
-        } elseif { $constraint_type == "R"} {
+        } elseif { $constraint_type eq "R"} {
             append html ",\n\tFOREIGN KEY $constraint_name ("
             append html "[string tolower [join $constraint_columns ","]])"
             append html " REFERENCES <a href=\"index?table_name=$foreign_table\">[string tolower $foreign_table]</a>("
