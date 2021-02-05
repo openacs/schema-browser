@@ -26,9 +26,9 @@ ad_proc sb_get_tables { selected_table_name } {
 
     set tables [sb_get_tables_list]
     if {[llength $tables] == 0} {
-	return {No tables found. Make sure the owner of the tables in the
-		database matches the user-id used by the web server to connect
-		to the database.}
+        return {No tables found. Make sure the owner of the tables in the
+                database matches the user-id used by the web server to connect
+                to the database.}
     }
 
     set n_rows [expr {([llength $tables] - 1) / $n_columns + 1}]
@@ -42,14 +42,14 @@ ad_proc sb_get_tables { selected_table_name } {
                  set table_name [lindex $tables $i_element]
                  if { $table_name == $selected_table_name } {
                      append return_string "<td><b>[string tolower $table_name]</b></td>"
-	         } else {
-		     set href [export_vars -base index {table_name}]
-		     append return_string [subst {<td><a href="[ns_quotehtml $href]">[string tolower $table_name]</a></td>}]
+                 } else {
+                     set href [export_vars -base index {table_name}]
+                     append return_string [subst {<td><a href="[ns_quotehtml $href]">[string tolower $table_name]</a></td>}]
 
                  }
-	     }
-          
-         }   
+             }
+
+         }
      append return_string "</tr>"
     }
 
@@ -87,7 +87,7 @@ ad_proc sb_get_child_tables { table_name {html_anchor_p "f"} } {
     Build an HTML snippet listing all tables which have at least one foreign key
     referring to table_name.
 } {
-    
+
     set return_string "\n\n-- Tables with foreign keys that refer to $table_name:"
     db_foreach schema_browser_get_referencess {
          select distinct r1.relname as child_table,
@@ -110,7 +110,7 @@ ad_proc sb_get_child_tables { table_name {html_anchor_p "f"} } {
             append return_string "\n--<a href=\"index?table_name=$child_table\">[string tolower $child_table]</a>"
         } else {
             append return_string "\n--[string tolower $child_table]"
-	} 
+        }
         if { $constraint_name ne "<unnamed>" } {
             append return_string "($constraint_name)"
         }
@@ -124,13 +124,13 @@ ad_proc sb_get_indexes { table_name { html_anchors_p "f" } {pki {}}} {
     Create statements for indexes on table_name.
 } {
 
-    
+
     set return_string "\n"
     set prev_index ""
 
     set indexes [db_list_of_lists sb_get_indexes_select_1 {
         select
-          relname as index_name, 
+          relname as index_name,
           case when indisunique then ' UNIQUE' else NULL end as uniqueness,
           amname as index_type,
           indkey
@@ -141,7 +141,7 @@ ad_proc sb_get_indexes { table_name { html_anchors_p "f" } {pki {}}} {
           join pg_am a on (index_class.relam = a.oid)
         order by index_name}]
 
-    if {$pki ne ""} { 
+    if {$pki ne ""} {
         lappend indexes [list {PRIMARY KEY} { UNIQUE} {} $pki]
     }
 
@@ -153,7 +153,7 @@ ad_proc sb_get_indexes { table_name { html_anchors_p "f" } {pki {}}} {
         append return_string "\nCREATE$uniqueness INDEX [string tolower $index_name] ON [string tolower $table_name] ("
         set sep ""
 
-        # JCD: need to preserve the order of the index columns 
+        # JCD: need to preserve the order of the index columns
         # since it matters a lot.
 
         db_foreach sb_get_indexes_select_2 "
@@ -166,10 +166,10 @@ ad_proc sb_get_indexes { table_name { html_anchors_p "f" } {pki {}}} {
         " {
             set cname($attnum) $column_name
         }
-        
 
-        foreach indid [split $indkey " "] { 
-            if {[info exists cname($indid)]} { 
+
+        foreach indid [split $indkey " "] {
+            if {[info exists cname($indid)]} {
                 append return_string $sep$cname($indid)
                 set sep ", "
             }
@@ -185,16 +185,16 @@ ad_proc sb_get_foreign_keys { table_name } {
     Build a list describing all foreign keys on table_name and their actions.
     We ignore MATCH conditions because Oracle doesn't support them, therefore
     OpenACS doesn't use them.  Same is true of SET NULL and SET DEFAULT actions
-    hung on ON DELETE/ON UPDATE subclauses, but since Oracle *does* support 
+    hung on ON DELETE/ON UPDATE subclauses, but since Oracle *does* support
     CASCADE as an action I had figure out how to grab this info from the system
     catalog anyway.
 
     This code is *horribly* convoluted, mostly a result of the non-obvious way
-    that the needed information is organized in the PG system catalogs. 
+    that the needed information is organized in the PG system catalogs.
 g
-    Feel free to clean this up if you want! 
+    Feel free to clean this up if you want!
 
-    @author Don Baccus, though he hates to admit to writing such ugly code (dhogaza@pacifier.com) 
+    @author Don Baccus, though he hates to admit to writing such ugly code (dhogaza@pacifier.com)
 
 } {
     set complex_foreign_keys [list]
@@ -222,7 +222,7 @@ g
          union all
          select t.tgargs as constraint_args,
              conname as constraint_name,
-             case 
+             case
                when p.proname like '%noaction%' then 'NOACTION'
                when p.proname like '%cascade%' then 'CASCADE'
                when p.proname like '%setnull%' then 'SET NULL'
@@ -249,7 +249,7 @@ g
              c.conrelid  = r.oid and
              not p.proname like 'RI%_check_%'
          order by oid, sort_key
-    } {             
+    } {
         set one_ri_datum [list]
         set arg_start 0
         while { $constraint_args ne "" } {
@@ -305,27 +305,27 @@ g
 
 
 ad_proc -public sb_get_table_size {
-	{-table_name:required}
-	{-namespace {public}}
-	{-block_size {8192}}
+        {-table_name:required}
+        {-namespace {public}}
+        {-block_size {8192}}
 } {
-	Returns the size of the table on disk. This information is only updated
-	by the commands VACUUM, ANALYZE, and CREATE INDEX. Thus, if you have
-	been changing your table, run ANALYZE on the table before running this
-	proc.
+        Returns the size of the table on disk. This information is only updated
+        by the commands VACUUM, ANALYZE, and CREATE INDEX. Thus, if you have
+        been changing your table, run ANALYZE on the table before running this
+        proc.
 
-	@param table_name The table name
-	@param namespace The database namespace that contains the table
-	@param block_size Size of BLCKSZ (in bytes) used by the database
+        @param table_name The table name
+        @param namespace The database namespace that contains the table
+        @param block_size Size of BLCKSZ (in bytes) used by the database
 
-	@return This procedure returns a list with 2 items:
-		<ol>
-		<li> Size of the table on disk (in bytes), or -1 if the table was not found
-		<li> Number of rows in the table, or -1 if the table was not found
-		</ol>
+        @return This procedure returns a list with 2 items:
+                <ol>
+                <li> Size of the table on disk (in bytes), or -1 if the table was not found
+                <li> Number of rows in the table, or -1 if the table was not found
+                </ol>
 
-	@author Gabriel Burca (gburca-openacs@ebixio.com)
-	@creation-date 2004-06-27
+        @author Gabriel Burca (gburca-openacs@ebixio.com)
+        @creation-date 2004-06-27
 } {
     set res [db_0or1row sb_get_table_size {
         select relpages * :block_size as size_in_bytes, reltuples as table_rows
@@ -352,13 +352,13 @@ ad_proc sb_get_table_description { table_name } {} {
 
     # get table comments
     if { [db_0or1row sb_get_table_comment {
-        select d.description 
+        select d.description
         from pg_class c, pg_description d
-        where c.relname = lower(:table_name) 
+        where c.relname = lower(:table_name)
         and d.objoid = c.oid and objsubid = 0}] } {
         append html "\n--[join [split $description "\n"] "\n-- "]"
     }
-                   
+
     append html "\nCREATE TABLE [string tolower $table_name] ("
 
     if { [db_0or1row sb_get_primary_key {
@@ -399,7 +399,7 @@ ad_proc sb_get_table_description { table_name } {} {
             case t.typname
               when 'int4' then 'integer'
               when 'bpchar' then 'char'
-              else t.typname 
+              else t.typname
             end as data_type,
             d.description as column_comments,
             pg_get_expr(ad.adbin, ad.adrelid) as data_default,
@@ -433,20 +433,20 @@ ad_proc sb_get_table_description { table_name } {} {
     #
     # write out the columns with associated constraints
     #
-    
+
     set n_column 0
 
     foreach column $column_list {
-	if { $n_column > 0 } {
-	    append html ","
-	}
-	set column_comments [ns_set get $column "column_comments"]
-	if {$column_comments != ""} {
+        if { $n_column > 0 } {
+            append html ","
+        }
+        set column_comments [ns_set get $column "column_comments"]
+        if {$column_comments != ""} {
             set comment_list [split $column_comments "\n"]
             append html "\n\t--[join $comment_list "\n\t-- "]"
-	}
-	append html "\n"
-	append html "\t[string tolower [ns_set get $column column_name]]\t [ns_set get $column data_type]"
+        }
+        append html "\n"
+        append html "\t[string tolower [ns_set get $column column_name]]\t [ns_set get $column data_type]"
         if { [ns_set get $column data_length] ne "" } {
             append html "([ns_set get $column data_length])"
         }
@@ -456,12 +456,12 @@ ad_proc sb_get_table_description { table_name } {} {
         if { [llength $primary_key_columns] == 1 && [lindex $primary_key_columns 0] == [ns_set get $column column_number] } {
             append html " PRIMARY KEY"
         }
-	if { [ns_set get $column "data_default"] != "" } {
-	    append html " DEFAULT [ad_text_to_html -- [ns_set get $column data_default]]"
-	}
+        if { [ns_set get $column "data_default"] != "" } {
+            append html " DEFAULT [ad_text_to_html -- [ns_set get $column data_default]]"
+        }
         if { [ns_set get $column "nullable"] != "" } {
-	    append html " [ns_set get $column nullable]"
-	}
+            append html " [ns_set get $column nullable]"
+        }
 
         if { [info exists references([ns_set get $column column_name])] } {
             append html " $references([ns_set get $column column_name])"
@@ -478,7 +478,7 @@ ad_proc sb_get_table_description { table_name } {} {
     #
     # write out the table-level constraints in the table_constraint_list
     #
-    
+
     for { set i 0 } { $i < [ns_set size $check_constraint_set] } { incr i } {
         if { [ns_set value $check_constraint_set $i] ne "" } {
             append html ",\n	"
@@ -488,12 +488,12 @@ ad_proc sb_get_table_description { table_name } {} {
             append html "CHECK [ns_set value $check_constraint_set $i]"
         }
     }
-    
+
     if { [llength $primary_key_columns] > 1 } {
         append html ",\n\tPRIMARY KEY ("
         append html [join [db_list sb_get_primary_key_select_2 [subst {
             select
-              a.attname as column_name 
+              a.attname as column_name
             from
               (select oid from pg_class where relname = lower(:table_name)) c
               join pg_attribute a on (c.oid = a.attrelid)
@@ -512,15 +512,22 @@ ad_proc sb_get_table_description { table_name } {} {
     append html [sb_get_child_tables $table_name "t"]
 
     if {[string match "pg_*" $table_name]} {
-    	set table_size [sb_get_table_size -table_name $table_name -namespace "pg_catalog"]
+        set table_size [sb_get_table_size -table_name $table_name -namespace "pg_catalog"]
     } else {
-    	set table_size [sb_get_table_size -table_name $table_name]
+        set table_size [sb_get_table_size -table_name $table_name]
     }
     append html "\n\n-- Table size: [util_commify_number [lindex $table_size 0]] bytes\n"
     append html "-- Table rows: [util_commify_number [lindex $table_size 1]]\n"
 
     append html "</pre>"
-    
+
     return $html
-    
+
 }
+
+#
+# Local variables:
+#    mode: tcl
+#    tcl-indent-level: 4
+#    indent-tabs-mode: nil
+# End:
