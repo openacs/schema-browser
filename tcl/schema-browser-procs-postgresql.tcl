@@ -351,23 +351,12 @@ ad_proc sb_get_table_description { table_name } {} {
     set html "<pre>"
 
     # get table comments
-    # JCD: pg_description changed from 7.1 to 7.2 so do the correct query... 
-    if { [string match {7.[01]*} [db_version]]} {
-        if { [db_0or1row sb_get_table_comment {
-            select d.description 
-              from pg_class c, pg_description d
-             where c.relname = lower(:table_name) 
-               and d.objoid = c.relfilenode}] } {
-            append html "\n--[join [split $description "\n"] "\n-- "]"
-        }
-    } else { 
-        if { [db_0or1row sb_get_table_comment {
-            select d.description 
-              from pg_class c, pg_description d
-             where c.relname = lower(:table_name) 
-               and d.objoid = c.oid and objsubid = 0}] } {
-            append html "\n--[join [split $description "\n"] "\n-- "]"
-        }
+    if { [db_0or1row sb_get_table_comment {
+        select d.description 
+        from pg_class c, pg_description d
+        where c.relname = lower(:table_name) 
+        and d.objoid = c.oid and objsubid = 0}] } {
+        append html "\n--[join [split $description "\n"] "\n-- "]"
     }
                    
     append html "\nCREATE TABLE [string tolower $table_name] ("
@@ -391,13 +380,6 @@ ad_proc sb_get_table_description { table_name } {} {
     # DRB: This changes some PG internal types into SQL92 standard types for readability's
     # sake.
 
-    # JCD: pg_description changed from 7.1 to 7.2 so do the correct query... 
-    if { [string match {7.[01]*} [db_version]]} {
-        set pg_description_join "left join pg_description d on (a.oid = d.objoid)"
-    } else { 
-        set pg_description_join "left join pg_description d on (c.oid = d.objoid and a.attnum = d.objsubid)"
-    }
-
     db_foreach schema_browser_index_get_user_table_data "
         select
             a.attname as column_name,
@@ -420,7 +402,7 @@ ad_proc sb_get_table_description { table_name } {} {
               else t.typname 
             end as data_type,
             d.description as column_comments,
-            ad.adsrc as data_default,
+            pg_get_expr(ad.adbin, ad.adrelid) as data_default,
             substr(lower(:table_name),1,15) || '_' || substr(lower(a.attname),1,15) as column_constraint_key,
             case a.attnotnull when true then 'NOT NULL' else '' end as nullable,
             a.attnum as column_number
@@ -428,7 +410,7 @@ ad_proc sb_get_table_description { table_name } {} {
              join pg_attribute a on (c.oid = a.attrelid and a.attnum > 0)
              join pg_type t on (a.atttypid = t.oid)
              left join pg_attrdef ad on (a.attrelid = ad.adrelid and a.attnum = ad.adnum)
-             $pg_description_join
+             left join pg_description d on (c.oid = d.objoid and a.attnum = d.objsubid)
         order by a.attnum" -column_set column_info_set {
 
         lappend column_list [ns_set copy $column_info_set]
@@ -437,29 +419,16 @@ ad_proc sb_get_table_description { table_name } {} {
 
     # current_constraint_info -- a constraint_info_set for the constraint being processed in the loop below
     set check_constraint_set [ns_set create]
-    if {![string match {7.[12]*} [db_version]]} {
-	db_foreach schema_browser_index_get_subselect {
-            select
+    db_foreach schema_browser_index_get_subselect {
+        select
               conname as constraint_name,
-              consrc as constraint_source
-            from
+              pg_get_constraintdef(c.oid) as constraint_source
+        from
               pg_constraint r join (select oid from pg_class where relname = lower(:table_name)) c
               on (c.oid = r.conrelid)
-            order by constraint_name
-        } {
-            ns_set put $check_constraint_set $constraint_name $constraint_source
-        }
-    } else {
-	db_foreach schema_browser_index_get_subselect "
-        select
-          rcname as constraint_name,
-          rcsrc as constraint_source
-        from
-         pg_relcheck r join (select oid from pg_class where relname = lower(:table_name)) c
-           on (c.oid = r.rcrelid)
-        order by constraint_name " {
-	    ns_set put $check_constraint_set $constraint_name $constraint_source
-	}
+        order by constraint_name
+    } {
+        ns_set put $check_constraint_set $constraint_name $constraint_source
     }
     #
     # write out the columns with associated constraints
