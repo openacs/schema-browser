@@ -27,7 +27,7 @@ ad_page_contract {
     @creation-date ?
     @cvs-id $Id$
 } {
-    table_name:optional
+    table_name:optional,token
 }
 
 # -----------------------------------------------------------------------------
