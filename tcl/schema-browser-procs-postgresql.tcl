@@ -516,8 +516,8 @@ ad_proc sb_get_table_description { table_name } {} {
     } else {
         set table_size [sb_get_table_size -table_name $table_name]
     }
-    append html "\n\n-- Table size: [util_commify_number [lindex $table_size 0]] bytes\n"
-    append html "-- Table rows: [util_commify_number [lindex $table_size 1]]\n"
+    append html "\n\n-- Table size: [lc_numeric [lindex $table_size 0]] bytes\n"
+    append html "-- Table rows: [lc_numeric [lindex $table_size 1]]\n"
 
     append html "</pre>"
 
