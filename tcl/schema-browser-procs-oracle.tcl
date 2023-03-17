@@ -216,7 +216,9 @@ ad_proc sb_get_indexes { table_name { html_anchors_p "f" } } {} {
 
 }
 
-ad_proc sb_get_table_description { table_name } {} {
+ad_proc sb_get_table_description { table_name } {
+    @return table description as HTML
+} {
 
     set html ""
     append html "<pre>"

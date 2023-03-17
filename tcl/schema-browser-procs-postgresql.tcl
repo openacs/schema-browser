@@ -342,7 +342,9 @@ ad_proc -public sb_get_table_size {
 }
 
 
-ad_proc sb_get_table_description { table_name } {} {
+ad_proc sb_get_table_description { table_name } {
+    @return table description as HTML
+} {
 
     set foreign_keys [sb_get_foreign_keys $table_name]
     array set references [lindex $foreign_keys 0]
