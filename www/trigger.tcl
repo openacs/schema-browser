@@ -11,39 +11,22 @@ ad_page_contract {
     trigger_name:notnull
 }
 
-
-set html "[ad_header "[ad_system_name]  One trigger "]
-
-<h2>[ad_system_name] Schema Browser</h2>
-[ad_context_bar_ws [list "./" "Schema Browser"] "One Trigger"]
-"
-
+set page_title "[ad_system_name] One trigger"
+set context [list "One Trigger"]
 
 db_1row unused "
     select
-        table_name,
-        trigger_type,
-        triggering_event,
-        status,
-        trigger_body
+        EVENT_OBJECT_TABLE as table_name,
+        EVENT_MANIPULATION as trigger_type,
+        ACTION_TIMING triggering_event,
+        ACTION_STATEMENT as trigger_body
     from
-        user_triggers
+        INFORMATION_SCHEMA.TRIGGERS
     where
-        trigger_name = upper(:trigger_name)"
+        TRIGGER_NAME = :trigger_name"
+
+set trigger_name [string tolower $trigger_name]
 
 regsub -all ";" $trigger_body ";<br> " trigger_body
 regsub "begin" $trigger_body "begin<br>" trigger_body
-
-append html "
-<hr>
-create or replace trigger [string tolower $trigger_name]
-$triggering_event $trigger_type
-<br>
-[ad_text_to_html -- $trigger_body]
-
-[ad_footer]
-"
-
-
-
-doc_return 200 text/html $html
+set trigger_body [ad_text_to_html -- $trigger_body]
