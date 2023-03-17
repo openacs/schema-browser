@@ -36,7 +36,7 @@ ad_page_contract {
 if { [info exists table_name] && $table_name ne "" } {
     set context [list "Table: $table_name"]
     set page_title "Table: $table_name"
-    set table_description [sb_get_table_description $table_name]
+    set table_description [sb::get_table_description $table_name]
 } else {
     set context ""
     set page_title "Schema Browser"
@@ -44,5 +44,5 @@ if { [info exists table_name] && $table_name ne "" } {
 }
 
 
-set table_list [sb_get_tables $table_name]
+set table_list [sb::get_tables $table_name]
 

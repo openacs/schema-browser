@@ -2,7 +2,9 @@ ad_library {
     Took these defs out of the /www/doc/schema-browser/index.tcl file.
 }
 
-ad_proc sb_get_tables_list {} {
+namespace eval sb {}
+
+ad_proc sb::get_tables_list {} {
    Get all tables that belong to the current user.
 } {
     return [db_list schema_browser_index_get_tables {
@@ -16,7 +18,7 @@ ad_proc sb_get_tables_list {} {
     }]
 }
 
-ad_proc sb_get_tables { selected_table_name } {
+ad_proc sb::get_tables { selected_table_name } {
    Build an HTML table of all PG tables belonging to the current user.  Each PG table
    name is returned as a hyperlink to a page which displays the table's structure.
 } {
@@ -24,7 +26,7 @@ ad_proc sb_get_tables { selected_table_name } {
     set n_columns 4
     set return_string ""
 
-    set tables [sb_get_tables_list]
+    set tables [sb::get_tables_list]
     if {[llength $tables] == 0} {
         return {No tables found. Make sure the owner of the tables in the
                 database matches the user-id used by the web server to connect
@@ -59,7 +61,7 @@ ad_proc sb_get_tables { selected_table_name } {
 
 }
 
-ad_proc sb_get_triggers { table_name } {
+ad_proc sb::get_triggers { table_name } {
    Get all non-RI triggers on the table.
 } {
     set return_string "\n"
@@ -83,7 +85,7 @@ ad_proc sb_get_triggers { table_name } {
     return $return_string
 }
 
-ad_proc sb_get_child_tables { table_name {html_anchor_p "f"} } {
+ad_proc sb::get_child_tables { table_name {html_anchor_p "f"} } {
     Build an HTML snippet listing all tables which have at least one foreign key
     referring to table_name.
 } {
@@ -120,7 +122,7 @@ ad_proc sb_get_child_tables { table_name {html_anchor_p "f"} } {
     return $return_string
 }
 
-ad_proc sb_get_indexes { table_name { html_anchors_p "f" } {pki {}}} {
+ad_proc sb::get_indexes { table_name { html_anchors_p "f" } {pki {}}} {
     Create statements for indexes on table_name.
 } {
 
@@ -181,7 +183,7 @@ ad_proc sb_get_indexes { table_name { html_anchors_p "f" } {pki {}}} {
     return $return_string
 }
 
-ad_proc sb_get_foreign_keys { table_name } {
+ad_proc sb::get_foreign_keys { table_name } {
     Build a list describing all foreign keys on table_name and their actions.
     We ignore MATCH conditions because Oracle doesn't support them, therefore,
     OpenACS doesn't use them.  Same is true of SET NULL and SET DEFAULT actions
@@ -304,7 +306,7 @@ g
 }
 
 
-ad_proc -public sb_get_table_size {
+ad_proc -public sb::get_table_size {
         {-table_name:required}
         {-namespace {public}}
         {-block_size {8192}}
@@ -342,11 +344,11 @@ ad_proc -public sb_get_table_size {
 }
 
 
-ad_proc sb_get_table_description { table_name } {
+ad_proc sb::get_table_description { table_name } {
     @return table description as HTML
 } {
 
-    set foreign_keys [sb_get_foreign_keys $table_name]
+    set foreign_keys [sb::get_foreign_keys $table_name]
     array set references [lindex $foreign_keys 0]
     set complex_foreign_keys [lindex $foreign_keys 1]
 
@@ -509,14 +511,14 @@ ad_proc sb_get_table_description { table_name } {
     }
 
     append html "\n);"
-    append html [sb_get_indexes $table_name]
-    append html [sb_get_triggers $table_name]
-    append html [sb_get_child_tables $table_name "t"]
+    append html [sb::get_indexes $table_name]
+    append html [sb::get_triggers $table_name]
+    append html [sb::get_child_tables $table_name "t"]
 
     if {[string match "pg_*" $table_name]} {
-        set table_size [sb_get_table_size -table_name $table_name -namespace "pg_catalog"]
+        set table_size [sb::get_table_size -table_name $table_name -namespace "pg_catalog"]
     } else {
-        set table_size [sb_get_table_size -table_name $table_name]
+        set table_size [sb::get_table_size -table_name $table_name]
     }
     append html "\n\n-- Table size: [lc_numeric [lindex $table_size 0]] bytes\n"
     append html "-- Table rows: [lc_numeric [lindex $table_size 1]]\n"

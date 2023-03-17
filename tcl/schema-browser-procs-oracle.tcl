@@ -2,7 +2,9 @@ ad_library {
     Took these defs out of the /www/doc/schema-browser/index.tcl file.
 }
 
-ad_proc sb_get_tables_list {} {} {
+namespace eval sb {}
+
+ad_proc sb::get_tables_list {} {} {
 
     set tables ""
 
@@ -16,12 +18,12 @@ ad_proc sb_get_tables_list {} {} {
 
 }
 
-ad_proc sb_get_tables { selected_table_name } {} {
+ad_proc sb::get_tables { selected_table_name } {} {
 
     set n_columns 4
     set return_string ""
 
-    set tables [util_memoize "sb_get_tables_list"]
+    set tables [util_memoize "sb::get_tables_list"]
 
     set n_rows [expr {([llength $tables] - 1) / $n_columns + 1}]
 
@@ -48,7 +50,7 @@ ad_proc sb_get_tables { selected_table_name } {} {
     return $return_string
 }
 
-ad_proc sb_get_triggers { table_name } {} {
+ad_proc sb::get_triggers { table_name } {} {
     set return_string "\n-- $table_name triggers:"
     db_foreach sb_get_triggers_select_1 "
         select
@@ -71,7 +73,7 @@ ad_proc sb_get_triggers { table_name } {} {
     return $return_string
 }
 
-ad_proc sb_get_child_tables { table_name {html_anchor_p "f"} } {} {
+ad_proc sb::get_child_tables { table_name {html_anchor_p "f"} } {} {
 
   #
   # child tables -- put in comments about each child table that references this one
@@ -167,7 +169,7 @@ ad_proc add_column_constraint { column_list column_constraint } {} {
 
 }
 
-ad_proc sb_get_indexes { table_name { html_anchors_p "f" } } {} {
+ad_proc sb::get_indexes { table_name { html_anchors_p "f" } } {} {
 
 
     set return_string ""
@@ -216,7 +218,7 @@ ad_proc sb_get_indexes { table_name { html_anchors_p "f" } } {} {
 
 }
 
-ad_proc sb_get_table_description { table_name } {
+ad_proc sb::get_table_description { table_name } {
     @return table description as HTML
 } {
 
@@ -423,9 +425,9 @@ ad_proc sb_get_table_description { table_name } {
     }
 
     append html "\n);"
-    append html [sb_get_indexes $table_name]
-    append html [sb_get_triggers $table_name]
-    append html [sb_get_child_tables $table_name "t"]
+    append html [sb::get_indexes $table_name]
+    append html [sb::get_triggers $table_name]
+    append html [sb::get_child_tables $table_name "t"]
     append html "</pre>"
 
     return $html
