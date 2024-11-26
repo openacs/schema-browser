@@ -263,7 +263,7 @@ ad_proc sb::get_table_description { table_name } {
 
 
     # current_constraint_info -- a constraint_info_set for the constraint being processed in the loop below
-    set constraint_info [ns_set new]
+    set constraint_info [ns_set create]
 
     db_foreach schema_browser_index_get_subselect "
     select  columns.constraint_name,
@@ -311,7 +311,7 @@ ad_proc sb::get_table_description { table_name } {
 		    set column_list [add_column_constraint $column_list $constraint_info]
 		}
 	    }
-	    set constraint_info [ns_set new]
+	    set constraint_info [ns_set create]
 	    ns_set put $constraint_info "constraint_name" $constraint_name
 	    ns_set put $constraint_info "constraint_type" $constraint_type
 	    ns_set put $constraint_info "constraint_columns" [list $column_name]
